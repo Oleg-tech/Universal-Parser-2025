@@ -44,6 +44,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Template(models.Model):
+    SCRAPING_STATUS_CHOICES = [
+        ('idle', 'Idle'),
+        ('running', 'Running'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
     name = models.CharField(max_length=100)
     hashed_name = models.CharField(max_length=150, unique=True)
     base_hashed_name = models.CharField(max_length=150)
@@ -53,6 +60,16 @@ class Template(models.Model):
     is_automated = models.BooleanField(default=False)
     last_scrape = models.DateTimeField(default=timezone.now)
     delay_between_scrapes = models.IntegerField(default=0)
+
+    scraping_status = models.CharField(
+        max_length=20,
+        choices=SCRAPING_STATUS_CHOICES,
+        default='idle'
+    )
+    scraping_started_at = models.DateTimeField(null=True, blank=True)
+    scraping_progress = models.IntegerField(default=0)  # 0-100%
+    scraping_message = models.TextField(blank=True)
+    scraping_error = models.TextField(blank=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

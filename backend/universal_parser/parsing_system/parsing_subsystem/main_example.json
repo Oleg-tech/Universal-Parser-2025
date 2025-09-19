@@ -1,0 +1,24 @@
+{
+    //    "site_type": "CSR/SSG",
+    "pagination": {
+        "last_updated": "datetime",
+        "type": "static/dynamic",
+        "static": {
+            "number_of_pages": 100,
+            "pagination_link_example": "link_example",
+            "url_specification": "'attribute' (if page specified as '?page=2') or 'endpoint' (if '/page/2/')"
+        }
+    },
+    "elements_to_parse": [
+        {
+            "tag": "div",
+            "list_elem_class": "box",
+            "attrs": {}
+        },
+        {
+            "tag": "span",
+            "list_elem_class": "name",
+            "attrs": {}
+        }
+    ]
+}

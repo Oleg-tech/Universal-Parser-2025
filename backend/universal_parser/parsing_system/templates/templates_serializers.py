@@ -1,8 +1,18 @@
+import os
+import json
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from ..models import Template
 
+
 User = get_user_model()
+
+base_path = "./parsing_system/parsing_subsystem/data"
+
+configuration_template = {
+    "base_url": "",
+    "pagination": {},
+}
 
 
 class TemplateSerializer(serializers.ModelSerializer):
@@ -46,8 +56,10 @@ class TemplateCreateSerializer(serializers.ModelSerializer):
     Separate serializer for creation to handle different validation if needed
     """
     name = serializers.CharField(max_length=150, write_only=True)
+    webresource_url = serializers.URLField()
     hashed_name = serializers.CharField(read_only=True)
     base_hashed_name = serializers.CharField(read_only=True)
+    elements_to_parse = serializers.JSONField(write_only=True, required=False)
 
     class Meta:
         model = Template
@@ -57,7 +69,8 @@ class TemplateCreateSerializer(serializers.ModelSerializer):
             'base_hashed_name',
             'webresource_url',
             'is_automated',
-            'delay_between_scrapes'
+            'delay_between_scrapes',
+            'elements_to_parse'
         ]
 
     def create(self, validated_data):
@@ -67,6 +80,8 @@ class TemplateCreateSerializer(serializers.ModelSerializer):
 
         # Extract the name field
         web_resource_url = validated_data.pop('webresource_url')
+
+        print(web_resource_url)
 
         # Create base hash from name
         base_hash = hashlib.md5(web_resource_url.encode('utf-8')).hexdigest()
@@ -87,5 +102,22 @@ class TemplateCreateSerializer(serializers.ModelSerializer):
         # Set the hashed values
         validated_data['hashed_name'] = hashed_name
         validated_data['base_hashed_name'] = base_hash
+        validated_data['webresource_url'] = web_resource_url
+
+        elements_to_parse = validated_data.pop("elements_to_parse", [])
+        print(f"Elements To Parse: {elements_to_parse}")
+
+        config_dir = os.path.join(base_path, base_hash, hashed_name)
+        os.makedirs(config_dir, exist_ok=True)
+
+        config_path = os.path.join(config_dir, "configuration.json")
+        configuration_template["elements_to_parse"] = elements_to_parse
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(
+                configuration_template,
+                f,
+                ensure_ascii=False,
+                indent=4
+            )
 
         return super().create(validated_data)

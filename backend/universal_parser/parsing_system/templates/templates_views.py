@@ -1,6 +1,10 @@
-from datetime import timezone
-
-from rest_framework.decorators import api_view, permission_classes
+import json
+import logging
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,6 +12,12 @@ from django.shortcuts import get_object_or_404
 
 from ..models import Template
 from .templates_serializers import TemplateSerializer, TemplateCreateSerializer
+
+from ..parsing_subsystem.main_subsystem import analyser
+
+User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET', 'POST'])
@@ -25,9 +35,21 @@ def template_list_create(request):
         serializer = TemplateCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
-            # Return the created object with full serializer
             template = Template.objects.get(id=serializer.instance.id)
             response_serializer = TemplateSerializer(template)
+
+            # Parse Data
+            # webresource_url = response_serializer.data['webresource_url']
+            # user_hashed_url = response_serializer.data['hashed_name']
+            # base_hashed_url = response_serializer.data['base_hashed_name']
+            #
+            # main_subsystem.main(
+            #     url=webresource_url,
+            #     base_hash=base_hashed_url,
+            #     user_url_hash=user_hashed_url
+            # )
+            #
+
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -66,3 +88,44 @@ def template_detail(request, pk):
             {'message': f'Template "{template_name}" has been deleted successfully.'},
             status=status.HTTP_204_NO_CONTENT
         )
+
+
+# Створити початкові папки та об'єкт шаблона в БД
+@require_http_methods(["POST"])
+@login_required
+def make_initial_analysis(request):
+    if request.method == 'POST':
+        serializer = TemplateCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            template = Template.objects.get(id=serializer.instance.id)
+            template_serializer = TemplateSerializer(template)
+
+            analyser(
+                url=request.data["url"],
+                base_hash=template_serializer.data["base_hash"],
+                hashed_name=template_serializer.data["hashed_name"]
+            )
+
+            with open("configuration.json", "r", encoding="utf-8") as f:
+                config_data = json.load(f)
+
+            pagination_is_found = False
+            if "pagination" in config_data:
+                pagination_is_found = True
+
+            return Response(
+                data={
+                    "pagination_is_found": pagination_is_found,
+                    "template_data": template_serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(data={"ERROR": "400 Bad Request"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Скрейпить дані з початкової сторінки та повертає результат та повертає результат у вигляді JSON-у
+def extract_initial_data(request):
+    if request.method == 'POST':
+        serializer = TemplateCreateSerializer(data=request.data)
