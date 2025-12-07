@@ -30,7 +30,7 @@ class RegisterView(generics.CreateAPIView):
                 'user': UserSerializer(user).data,
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
-                'message': 'Користувач успішно створений'
+                'message': 'User successfully created'
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -68,6 +68,6 @@ def logout_view(request):
         if refresh_token:
             token = RefreshToken(refresh_token)
             token.blacklist()
-        return Response({'message': 'Успішний вихід з системи'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Successful logout'}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': 'Помилка при виході з системи'}, status=status.HTTP_400_BAD_REQUEST)

@@ -19,12 +19,12 @@ def get_init_page_directory_hash(base_hash: str, hashed_name: str):
 
 
 def get_init_page_filename_hash(base_hash: str, hashed_name: str):
-    print("5")
+    # print("5")
     return f"{get_init_page_directory_hash(base_hash=base_hash, hashed_name=hashed_name)}/init_page.html"
 
 
 def get_init_page_cache(base_hash: str, hashed_name: str):
-    print("3")
+    # print("3")
     page_filename = get_init_page_filename_hash(base_hash=base_hash, hashed_name=hashed_name)
     # print(f'filename = {page_filename}')
 
@@ -113,3 +113,28 @@ def get_elements_to_parse(base_hash: str, hashed_name: str):
     elements_to_parse = config_data.get("elements_to_parse")
 
     return elements_to_parse
+
+
+def get_product_url(base_hash: str, hashed_name: str):
+    filename_path = f"{base_path}/{base_hash}/{hashed_name}/configuration.json"
+
+    with open(filename_path, "r") as file:
+        config_data = json.load(file)
+
+    product_page_url = config_data.get("product_page_url")
+
+    return product_page_url
+
+
+def get_product_page_url_obj(base_hash: str, hashed_name: str):
+    filename_path = f"{base_path}/{base_hash}/{hashed_name}/configuration.json"
+
+    with open(filename_path, "r") as file:
+        config_data = json.load(file)
+
+    product_page_url_object = config_data.get("product_page_url_object")
+
+    return product_page_url_object
+
+
+

@@ -14,8 +14,16 @@ SECRET_KEY = 'django-insecure-_)wv#44$n-t-ho(i8c!_qxj+$y5ft8rgtmw1j1eauw3su1!q@d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "*"
+]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
@@ -29,7 +37,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'parsing_system'
+    'parsing_system',
+    'django_q'
 ]
 
 MIDDLEWARE = [
@@ -40,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'universal_parser.urls'
@@ -61,6 +71,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'universal_parser.wsgi.application'
 
+Q_CLUSTER = {
+    'name': 'scraping_cluster',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 3600,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'redis': {
+        'host': 'localhost',
+        'port': 6379,
+        'db': 0,
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -130,7 +156,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

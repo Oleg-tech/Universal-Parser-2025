@@ -6,7 +6,7 @@ from .cache_manager import get_init_page_cache, make_init_page_cache
 
 def make_request(url: str, base_hash: str, hashed_name: str):
     cached_file = get_init_page_cache(base_hash=base_hash, hashed_name=hashed_name)
-    print("4")
+    # print("4")
 
     if cached_file:
         return cached_file
@@ -14,6 +14,7 @@ def make_request(url: str, base_hash: str, hashed_name: str):
         try:
             options = Options()
             options.add_argument('--no-sandbox')
+            options.add_argument('--headless')
             options.add_argument('--disable-dev-shm-usage')
 
             driver = webdriver.Chrome(options=options)

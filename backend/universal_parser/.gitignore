@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Django specific
+*.log
+*.pot
+*.pyc
+*.mo
+*.db
+db.sqlite3
+media/
+staticfiles/
+
+# If you collect static into STATIC_ROOT
+/static/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*~
+
+# Coverage / test
+htmlcov/
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+coverage.xml
+*.cover
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

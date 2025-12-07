@@ -18,7 +18,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError("Паролі не співпадають.")
+            raise serializers.ValidationError("Passwords do not match.")
 
         # # Якщо username не вказано, використовуємо email
         # if not attrs.get('username'):
@@ -68,6 +68,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 }
                 return data
             else:
-                raise serializers.ValidationError('Неправильний email або пароль.')
+                raise serializers.ValidationError('Incorrect email or password.')
         else:
-            raise serializers.ValidationError('Необхідно вказати email та пароль.')
+            raise serializers.ValidationError('You must provide an email and password.')

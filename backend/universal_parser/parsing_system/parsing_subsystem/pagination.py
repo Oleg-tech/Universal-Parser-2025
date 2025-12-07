@@ -1,20 +1,50 @@
 import re
+from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 
 pagination_possible_classnames = [
-    "pagination",
-    "navigation"
+    "paginat",  # "pagination",   # "paginatorNavigate"
+    "navigation",
 ]
 
 
-def find_elements_with_any_class(soup, classes):
+def find_elements_with_any_class(soup, class_substrings):
     results = []
     for element in soup.find_all(class_=True):
         element_classes = element.get('class', [])
-        if any(cls in element_classes for cls in classes):
-            results.append(element)
+        for cls in element_classes:
+            for substring in class_substrings:
+                if substring in cls:
+                    results.append(element)
+                    break
+            else:
+                continue
+            break
     return results
+
+
+def create_pagination_template(initial_url, current_url):
+    print(f"Initial URL = ", initial_url)
+    print(f"Current URL = ", current_url)
+
+    if not re.search(r'\d+', initial_url):
+        return re.sub(r'\d+', 'PAGE_NUMBER', current_url, count=1)
+
+    initial_numbers = set(re.findall(r'\d+', initial_url))
+
+    def replace_new_number(match):
+        num = match.group(0)
+        if num not in initial_numbers:
+            return 'PAGE_NUMBER'
+        return num
+
+    return re.sub(r'\d+', replace_new_number, current_url, count=1)
+
+
+def add_base_domain_from_initial_url(initial_url, current_url):
+    full_url = urljoin(initial_url, current_url)
+    return full_url
 
 
 def analyze_pagination(possible_pagination_soup, base_url):
@@ -28,13 +58,7 @@ def analyze_pagination(possible_pagination_soup, base_url):
         href = link.get('href')
 
         # зробити універсальним в майбутньому
-        # match = re.search(r'/page/(\d+)/', href)
         match = re.search(r'\b\d+\b', href)
-        # is_pagination_link = bool(re.search(r'\d', href))
-
-        if base_url not in href:
-            href = f"{base_url}/{href}"
-        #
 
         if match:
             if not possible_page_links.get(href.strip()):
@@ -46,6 +70,13 @@ def analyze_pagination(possible_pagination_soup, base_url):
             if text.isdigit():
                 page_numbers.append(int(text))
 
+    # print("Page Numbers = ", page_numbers)
+
+    try:
+        page_numbers.remove(1)
+    except:
+        print("1 is missing in pagination")
+
     is_increasing = all(page_numbers[i] < page_numbers[i + 1] for i in range(len(page_numbers) - 1))
 
     if not is_increasing:
@@ -53,8 +84,19 @@ def analyze_pagination(possible_pagination_soup, base_url):
         return
 
     if possible_page_links:
-        pagination_link_template = re.sub(r"\d+", "PAGE_NUMBER", next(iter(possible_page_links.keys())))
-        # pagination_link_template = next(iter(possible_page_links.values())).group(0)
+        first_possible_link = list(possible_page_links.keys())[0]
+        print(f"First Possible Link 1 = {first_possible_link}")
+
+        first_possible_link = add_base_domain_from_initial_url(
+            initial_url=base_url,
+            current_url=first_possible_link
+        )
+        print(f"First Possible Link 2 = {first_possible_link}")
+
+        pagination_link_template = create_pagination_template(
+            initial_url=base_url,
+            current_url=first_possible_link
+        )
 
     pagination_search_result = {
         "type": "static",
@@ -72,7 +114,9 @@ def find_pagination(page_html, base_url):
 
     elements = find_elements_with_any_class(page_soup, pagination_possible_classnames)
     for el in elements:
+        # print(f"Element = {el}")
         pagination_analysis_result = analyze_pagination(el, base_url)
+        # print(f"Pagination Analysis Result = {pagination_analysis_result}")
 
         if pagination_analysis_result:
             break

@@ -27,5 +27,5 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display = ("name", "hashed_name", "base_hashed_name", "webresource_url", "number_of_scrapes", "scraping_status", "is_automated", "last_scrape", "delay_between_scrapes", "user")
+    list_display = ("id", "name", "hashed_name", "base_hashed_name", "webresource_url", "number_of_scrapes", "scraping_status", "is_automated", "last_scrape", "delay_between_scrapes", "user")
     list_filter = ("is_automated", "last_scrape")
